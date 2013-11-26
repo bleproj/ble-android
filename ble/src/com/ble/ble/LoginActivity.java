@@ -11,6 +11,8 @@ public class LoginActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Intent intent = new Intent(this, CheckinActivity.class);
+		startActivity(intent);
 		setContentView(R.layout.activity_login);
 	}
 
@@ -21,7 +23,7 @@ public class LoginActivity extends Activity {
 		return true;
 	}
 	
-	void clickedButton(View v){
+	public void clickedButton(View v){
 		Intent intent = new Intent(this, CheckinActivity.class);
 		startActivity(intent);
 	}
