@@ -11,6 +11,10 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
@@ -36,6 +40,31 @@
         <activity
             android:name="com.ble.ble.AutoCheckinActivity"
             android:label="@string/title_activity_auto_checkin" >
+        </activity>
+
+        <service
+            android:name="com.radiusnetworks.ibeacon.service.IBeaconService"
+            android:enabled="true"
+            android:exported="true"
+            android:isolatedProcess="false"
+            android:label="iBeacon" >
+        </service>
+        <service
+            android:name="com.radiusnetworks.ibeacon.IBeaconIntentProcessor"
+            android:enabled="true" >
+            <meta-data
+                android:name="background"
+                android:value="true" />
+
+            <intent-filter android:priority="1" >
+                <action android:name="com.ble.ble.DID_RANGING" />
+                <action android:name="com.ble.ble.DID_MONITORING" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name="com.ble.ble.MonitoringActivity"
+            android:label="@string/title_activity_monitoring" >
         </activity>
     </application>
 

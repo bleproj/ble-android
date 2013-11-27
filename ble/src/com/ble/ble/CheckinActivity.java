@@ -39,6 +39,9 @@ public class CheckinActivity extends Activity {
 		return true;
 	}
 	
+	/**
+	 * Runs automatically when user responds to start bluetooth request
+	 */
 	protected void onActivityResult(int requestCode, int resultCode, Intent data){
 		if(requestCode <= REQUEST_ENABLE_BT_AUTO){
 			if(resultCode != RESULT_OK){

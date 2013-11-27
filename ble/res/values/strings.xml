@@ -8,5 +8,6 @@
     <string name="checkin_string">Checkin asjdklfjsdl</string>
     <string name="title_activity_manual_checkin">ManualCheckinActivity</string>
     <string name="title_activity_auto_checkin">AutoCheckinActivity</string>
+    <string name="title_activity_monitoring">MonitoringActivity</string>
 
 </resources>
