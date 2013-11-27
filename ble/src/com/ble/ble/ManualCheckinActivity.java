@@ -1,25 +1,16 @@
 package com.ble.ble;
 
-import java.util.ArrayList;
+import java.util.Vector;
 
-import com.radiusnetworks.ibeacon.IBeaconConsumer;
-import com.radiusnetworks.ibeacon.IBeaconManager;
-import com.radiusnetworks.ibeacon.MonitorNotifier;
-import com.radiusnetworks.ibeacon.Region;
-
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.view.Menu;
 import android.view.View;
@@ -27,10 +18,14 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.radiusnetworks.ibeacon.IBeaconConsumer;
+import com.radiusnetworks.ibeacon.IBeaconManager;
+import com.radiusnetworks.ibeacon.MonitorNotifier;
+import com.radiusnetworks.ibeacon.Region;
 
 
 public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
@@ -40,11 +35,7 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 	ProgressBar p;
 	Button b;
 	boolean hasBLE = false;
-	private ArrayList<BluetoothDevice> leDevices;
-	// Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
-    private boolean mScanning;
-    private Handler mHandler;
+	Vector<Region> regions;
     
     //iBeacon stuff
     private IBeaconManager iBeaconManager;
@@ -67,6 +58,11 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 			iBeaconManager = IBeaconManager.getInstanceForApplication(this);
 			iBeaconManager.bind(this);
 			b.setVisibility(8);
+			
+			regions = new Vector<Region>(1,1);
+			//Set regions, should be taken from database
+			//for regions in database .....
+			regions.add(new Region("testRegion", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
 		}
 		
         // Get ListView object from xml
@@ -76,7 +72,6 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
         // First parameter - Context
         // Second parameter - Layout for the row
         // Third parameter - ID of the TextView to which the data is written
-        // Forth - the Array of data
 
         adapter = new ArrayAdapter<String>(this,
           android.R.layout.simple_list_item_1, android.R.id.text1);
@@ -158,32 +153,6 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
         }
     };
     
-    @SuppressLint("NewApi")
-	private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-        @Override
-        public void onLeScan(final BluetoothDevice device, int rssi,
-                byte[] scanRecord) {
-            runOnUiThread(new Runnable() {
-               @Override
-               public void run() {
-//                   if(!leDevices.contains(device)){
-//                	   leDevices.add(device);
-            	   if(adapter.getPosition(device.getAddress()) == -1){
-            		   adapter.add(device.getAddress());
-                	   ParcelUuid[] uuids= device.getUuids();
-                	   for(ParcelUuid uuid : uuids){
-                		   adapter.add(uuid.getUuid().toString());	
-                	   }
-                	   adapter.add(device.getName());
-            	   }
-            	   
-//                   }
-               }
-           });
-       }
-    };
-    
     public void scanButton(View v){
     	if(!hasBLE){
     		bta.startDiscovery();
@@ -198,6 +167,7 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
             		adapter.add(line);
             	} else {
                     adapter.remove(line);
+                    
             	}
             }
         });
@@ -222,7 +192,9 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
         });
 
         try {
-            iBeaconManager.startMonitoringBeaconsInRegion(new Region("testRegion", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
+        	for(Region region : regions){
+        		iBeaconManager.startMonitoringBeaconsInRegion(region);
+        	}
         } catch (RemoteException e) {   }
 
     }
