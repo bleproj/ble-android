@@ -29,13 +29,17 @@ import com.radiusnetworks.ibeacon.Region;
 
 
 public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
+	static final int CHECKIN_SUCCESS = 1;
+	static final int CHECKIN_FAIL = 2;
 	ListView listView;
 	BluetoothAdapter bta;
 	ArrayAdapter<String> adapter;
+	Vector<String> uuids;
 	ProgressBar p;
 	Button b;
 	boolean hasBLE = false;
 	Vector<Region> regions;
+	static final int CHECKIN_REQUEST = 1;
     
     //iBeacon stuff
     private IBeaconManager iBeaconManager;
@@ -60,6 +64,7 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 			b.setVisibility(8);
 			
 			regions = new Vector<Region>(1,1);
+			uuids = new Vector<String>(1,1);
 			//Set regions, should be taken from database
 			//for regions in database .....
 			regions.add(new Region("testRegion", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
@@ -91,12 +96,16 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
                bta.cancelDiscovery();
                // ListView Clicked item value
                String itemValue = (String) listView.getItemAtPosition(position);
-                  
-                // Show Alert 
-                Toast.makeText(getApplicationContext(),
-                  "Position :"+itemPosition+"  ListItem : " +itemValue , Toast.LENGTH_LONG)
-                  .show();
+//                  
+//                // Show Alert 
+//                Toast.makeText(getApplicationContext(),
+//                  "Position :"+itemPosition+"  ListItem : " +itemValue , Toast.LENGTH_LONG)
+//                  .show();
              
+                Intent intent = new Intent(getApplicationContext(), SendCheckinActivity.class);
+                
+                intent.putExtra("UUID", uuids.get(position));
+                startActivityForResult(intent,CHECKIN_REQUEST);
               }
 
          });
@@ -128,6 +137,22 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 		iBeaconManager.unBind(this);
 	}
 
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data){
+		if(requestCode <= CHECKIN_REQUEST){
+			if(resultCode == CHECKIN_SUCCESS){
+				Toast.makeText(getApplicationContext(),
+						"Checkin done", Toast.LENGTH_LONG)
+						.show();
+				finish();
+			} else {
+				Toast.makeText(getApplicationContext(),
+						"Checkin failed", Toast.LENGTH_LONG)
+						.show();
+			}
+		}
+	}
+	
     // Create a BroadcastReceiver
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
@@ -160,14 +185,16 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
     }
     
     //action: 1=add, 2 = remove
-    private void logToDisplay(final String line, final int action) {
+    private void logToDisplay(final String line, final int action, final String uuid) {
         runOnUiThread(new Runnable() {
             public void run() {
             	if(action == 1){
             		adapter.add(line);
+            		uuids.add(uuid);
+            		myToast();
             	} else {
                     adapter.remove(line);
-                    
+                    uuids.remove(uuid);
             	}
             }
         });
@@ -178,12 +205,12 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
         iBeaconManager.setMonitorNotifier(new MonitorNotifier() {
         @Override
         public void didEnterRegion(Region region) {
-        	logToDisplay(region.getUniqueId(),1);
+        	logToDisplay(region.getUniqueId(),1,region.getProximityUuid());
         }
 
         @Override
         public void didExitRegion(Region region) {
-        	logToDisplay(region.getUniqueId(),2);
+        	logToDisplay(region.getUniqueId(),2,region.getProximityUuid());
         }
 
 		@Override
@@ -197,5 +224,11 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
         	}
         } catch (RemoteException e) {   }
 
+    }
+    
+    public void myToast(){
+    	Toast.makeText(getApplicationContext(),
+                "Found it :D" , Toast.LENGTH_LONG)
+                .show();
     }
 }

@@ -24,13 +24,15 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f080006;
-        public static final int button1=0x7f080000;
-        public static final int button2=0x7f080001;
-        public static final int editText1=0x7f080005;
-        public static final int listView1=0x7f080003;
-        public static final int progressBar1=0x7f080004;
-        public static final int textView1=0x7f080002;
+        public static final int action_settings=0x7f080008;
+        public static final int button1=0x7f080003;
+        public static final int button2=0x7f080004;
+        public static final int buttonBack=0x7f080001;
+        public static final int buttonMini=0x7f080002;
+        public static final int editText1=0x7f080007;
+        public static final int listView1=0x7f080005;
+        public static final int progressBar1=0x7f080006;
+        public static final int textView1=0x7f080000;
     }
     public static final class layout {
         public static final int activity_auto_checkin=0x7f030000;
@@ -38,6 +40,7 @@ public final class R {
         public static final int activity_login=0x7f030002;
         public static final int activity_manual_checkin=0x7f030003;
         public static final int activity_monitoring=0x7f030004;
+        public static final int activity_send_checkin=0x7f030005;
     }
     public static final class menu {
         public static final int auto_checkin=0x7f070000;
@@ -45,6 +48,7 @@ public final class R {
         public static final int login=0x7f070002;
         public static final int manual_checkin=0x7f070003;
         public static final int monitoring=0x7f070004;
+        public static final int send_checkin=0x7f070005;
     }
     public static final class string {
         public static final int action_settings=0x7f050001;
@@ -55,6 +59,7 @@ public final class R {
         public static final int title_activity_checkin=0x7f050003;
         public static final int title_activity_manual_checkin=0x7f050005;
         public static final int title_activity_monitoring=0x7f050007;
+        public static final int title_activity_send_checkin=0x7f050008;
     }
     public static final class style {
         /** 

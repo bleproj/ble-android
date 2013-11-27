@@ -9,5 +9,6 @@
     <string name="title_activity_manual_checkin">ManualCheckinActivity</string>
     <string name="title_activity_auto_checkin">AutoCheckinActivity</string>
     <string name="title_activity_monitoring">MonitoringActivity</string>
+    <string name="title_activity_send_checkin">SendCheckinActivity</string>
 
 </resources>

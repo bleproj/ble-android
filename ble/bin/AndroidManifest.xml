@@ -66,6 +66,10 @@
             android:name="com.ble.ble.MonitoringActivity"
             android:label="@string/title_activity_monitoring" >
         </activity>
+        <activity
+            android:name="com.ble.ble.SendCheckinActivity"
+            android:label="@string/title_activity_send_checkin" >
+        </activity>
     </application>
 
 </manifest>

@@ -1,5 +1,7 @@
 package com.ble.ble;
 
+import java.util.Timer;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
