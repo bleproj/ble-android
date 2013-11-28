@@ -89,13 +89,13 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
         @Override
         public void didEnterRegion(Region region) {
         	//logToDisplay(region.getUniqueId(),1);
-        	checkin(region.getProximityUuid(),1);
+        	checkin(region.getProximityUuid(),1).run();
         }
 
         @Override
         public void didExitRegion(Region region) {
         	//logToDisplay(region.getUniqueId(),2);
-        	checkin(region.getProximityUuid(),2);
+        	checkin(region.getProximityUuid(),2).run();
         }
 
 		@Override
@@ -143,9 +143,6 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 	}
 	
 	public void backButton(View v){
-		Intent intent = new Intent(getApplicationContext(), SendCheckinActivity.class);
-    	intent.putExtra("UUID", "23542266-18D1-4FE4-B4A1-23F8195B9D39");
-    	intent.putExtra("option", 2);
-    	startActivityForResult(intent,CHECKIN_REQUEST);
+		
 	}
 }
