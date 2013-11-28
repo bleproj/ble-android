@@ -4,10 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class SendCheckinActivity extends Activity {
 	private String uuid;
+	private int option; 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -15,9 +17,13 @@ public class SendCheckinActivity extends Activity {
 		setContentView(R.layout.activity_send_checkin);
 		Intent intent = getIntent();
 		uuid = intent.getStringExtra("UUID");
+		option = intent.getIntExtra("option", 1);
+		if(option == 2){
+			TextView t = (TextView)findViewById(R.id.textView1);
+			t.setText("Checking out");
+		}
 		Toast.makeText(this, uuid, Toast.LENGTH_LONG).show();
-		setResult(1);
-
+		setResult(2, intent);
 	}
 
 	@Override

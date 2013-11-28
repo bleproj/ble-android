@@ -154,6 +154,7 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 	}
 	
     // Create a BroadcastReceiver
+	// Not used with BLE
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -178,6 +179,8 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
         }
     };
     
+    
+    //Not used with BLE
     public void scanButton(View v){
     	if(!hasBLE){
     		bta.startDiscovery();
