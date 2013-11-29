@@ -25,6 +25,7 @@
         android:layout_weight="0.55"
         android:onClick="Send"
         android:text="Login"
+        android:textSize="118sp"
         android:textStyle="bold" />
 
     <EditText

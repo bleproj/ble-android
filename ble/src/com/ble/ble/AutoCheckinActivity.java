@@ -142,7 +142,14 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 		}
 	}
 	
+	public void minimizeButton(View v){
+		Intent startMain = new Intent(Intent.ACTION_MAIN);
+		startMain.addCategory(Intent.CATEGORY_HOME);
+		startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(startMain);
+	}
+	
 	public void backButton(View v){
-		
+		finish();
 	}
 }
