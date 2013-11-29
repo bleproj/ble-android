@@ -10,23 +10,45 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class LoginActivity extends Activity {
 	boolean testBool;
 	int REQUEST_ENABLE_BT = 1;
 	String password, user;
+	int resultCode;
+	SharedPreferences settings;
+	Button loginButton;
+	TextView loginText;
+	EditText nameField, passField;
+	ProgressBar snurr;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login);
 		testBool = false;
+		loginButton = (Button)findViewById(R.id.login);
+		loginText = (TextView)findViewById(R.id.textView1);
+		nameField = (EditText)findViewById(R.id.username);
+		passField = (EditText)findViewById(R.id.password);
+		snurr = (ProgressBar)findViewById(R.id.progressBar1);
+		settings = getSharedPreferences("Credentials", 0);
+		resultCode = -1;
+		if(settings.getString("access_token", "") != ""){
+			proceed();
+		}
 	}
 
 	@Override
@@ -55,16 +77,19 @@ public class LoginActivity extends Activity {
 	
 
 	public void Send(View v) {
-    EditText et = (EditText)findViewById(R.id.password);
-    password = et.getText().toString(); 
-    System.out.println(password);
-    et.getEditableText().toString();
-    
-    EditText et2 = (EditText)findViewById(R.id.username);
-    user = et2.getText().toString();
-    System.out.println(user);
-    et2.getEditableText().toString();
-    Login(user,password);
+		password = passField.getText().toString(); 
+		System.out.println(password);
+		passField.getEditableText().toString();
+
+		user = nameField.getText().toString();
+		System.out.println(user);
+		nameField.getEditableText().toString();
+		nameField.setEnabled(false);
+		passField.setEnabled(false);
+		snurr.setVisibility(0);
+		loginText.setVisibility(0);
+		loginButton.setEnabled(false);
+		Login(user,password);
     }
     
     
@@ -114,22 +139,52 @@ public class LoginActivity extends Activity {
     			           // Storing each json item in variable
     			           String id = result.getString("access_token");
     			           System.out.println(id);
+    			           resultCode = result.getInt("code");
     			           
-    			           SharedPreferences settings = getSharedPreferences("Credentials", 0);
+    			           settings = getSharedPreferences("Credentials", 0);
     			           SharedPreferences.Editor editor = settings.edit();
     			           editor.putString("access_token", id);
     			           editor.putString("username", user);
 
     			           // Commit the edits!
     			           editor.commit();
-
+    			           if(resultCode == 200){
+    			        	   proceed();
+    			           } else {
+    			        	   LoginActivity.this.runOnUiThread(failed());
+    			           }
     				  }
     			  } catch (Exception e) {
     				  System.out.println("Exception! " + e.getClass());
+    				  LoginActivity.this.runOnUiThread(failed());
     			  }
     		  }
     	}.start();
     }
+
+    public Runnable failed(){
+    	Runnable r = new Runnable(){
+    		public void run(){
+    			myToast("Login failed, check network connection and try again.");
+    			nameField.setEnabled(true);
+    			passField.setEnabled(true);
+    			snurr.setVisibility(4);
+    			loginText.setVisibility(4);
+    			loginButton.setEnabled(true);
+    		}
+    	};
+    	return r;
+    }
+    
+	public void proceed(){
+		testBool = true;
+		Intent intent = new Intent(this, CheckinActivity.class);
+		startActivity(intent);
+	}
 	
-	
+	public void myToast(String msg){
+		Toast t = Toast.makeText(this, msg, Toast.LENGTH_LONG);
+		t.setGravity(Gravity.CENTER, 0, 0);
+		t.show();
+	}
 }
