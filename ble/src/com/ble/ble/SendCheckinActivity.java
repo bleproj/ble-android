@@ -20,7 +20,7 @@ import android.widget.Toast;
 public class SendCheckinActivity extends Activity {
 	private String uuid;
 	private int option;
-	private SharedPreferences accessToken;
+	private String accessToken;
 	private HttpClient client;
 	private HttpPost post;
 	private HttpResponse response;
@@ -41,39 +41,50 @@ public class SendCheckinActivity extends Activity {
 			t.setText("Checking out");
 		}
 		Toast.makeText(this, uuid, Toast.LENGTH_LONG).show();
-		if(send()){
-			setResult(1, intent);
-		} else {
-			setResult(2, intent);
-		}
+		send();
+//		if(send()){
+//			setResult(1, intent);
+//		} else {
+//			setResult(2, intent);
+//		}
+//		finish();
 	}
 	
-	public boolean send(){
-		client = new DefaultHttpClient();
-		post = new HttpPost(url);
-		accessToken = getSharedPreferences("Token",0);
-		json = new JSONObject();
-		try {
-			//Make sure JSON stuff matches the API when it's done
-			//Token
-			json.put("token", accessToken);
-			//UUID of ble device to check in against
-			json.put("UUID", uuid);
-			//option, check in or out
-			json.put("option", option);
-			se = new StringEntity(json.toString());
-			se.setContentEncoding("UTF-8");
-			se.setContentType("application/json");
-			post.setEntity(se);
+	public void send(){
+		new Thread() {
+			public void run() {
+				client = new DefaultHttpClient();
+				post = new HttpPost(url);
+				accessToken = getSharedPreferences("Credentials",0).getString("access_token", "");
+				json = new JSONObject();
+				try {
+					//Make sure JSON stuff matches the API when it's done
+					//Token
+					json.put("token", accessToken);
+					//UUID of ble device to check in against
+					json.put("UUID", uuid);
+					//option, check in or out
+					json.put("option", option);
+					se = new StringEntity(json.toString());
+					se.setContentEncoding("UTF-8");
+					se.setContentType("application/json");
+					post.setEntity(se);
+					//Toast.makeText(this, "1", Toast.LENGTH_SHORT).show();
+					response = client.execute(post);
 
-			response = client.execute(post);
-			// Get hold of the response entity
-			entity = response.getEntity();
-			//Add check for the response too see if it succeeded or not
-		} catch (Exception e){
-			return false;
-		}
-		return true;
+					//Toast.makeText(this, "2", Toast.LENGTH_SHORT).show();
+					// Get hold of the response entity
+					entity = response.getEntity();
+
+					//Toast.makeText(this, "3", Toast.LENGTH_SHORT).show();
+					//Add check for the response too see if it succeeded or not
+				} catch (Exception e){
+					e.printStackTrace();
+					//return false;
+				}
+				//return true;
+			}
+		}.start();
 	}
 
 	@Override

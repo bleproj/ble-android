@@ -36,8 +36,6 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 	ArrayAdapter<String> adapter;
 	Vector<String> uuids;
 	ProgressBar p;
-	Button b;
-	boolean hasBLE = false;
 	Vector<Region> regions;
 	static final int CHECKIN_REQUEST = 1;
     
@@ -52,22 +50,20 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 		bta = BluetoothAdapter.getDefaultAdapter();
 		p = (ProgressBar) findViewById(R.id.progressBar1);
 		p.setVisibility(8);
-		
-		b = (Button) findViewById(R.id.button1);
-		b.setText("Start scan");
+
 		
 		//Check if device supports bluetooth low energy
 		if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
-			hasBLE = true;
 			iBeaconManager = IBeaconManager.getInstanceForApplication(this);
 			iBeaconManager.bind(this);
-			b.setVisibility(8);
 			
 			regions = new Vector<Region>(1,1);
 			uuids = new Vector<String>(1,1);
 			//Set regions, should be taken from database
 			//for regions in database .....
 			regions.add(new Region("testRegion", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
+		} else {
+			finish();
 		}
 		
         // Get ListView object from xml
@@ -90,37 +86,15 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
               @Override
               public void onItemClick(AdapterView<?> parent, View view,
                  int position, long id) {
-                
-               // ListView Clicked item index
-               int itemPosition = position;
-               bta.cancelDiscovery();
-               // ListView Clicked item value
-               String itemValue = (String) listView.getItemAtPosition(position);
-//                  
-//                // Show Alert 
-//                Toast.makeText(getApplicationContext(),
-//                  "Position :"+itemPosition+"  ListItem : " +itemValue , Toast.LENGTH_LONG)
-//                  .show();
-             
-                Intent intent = new Intent(getApplicationContext(), SendCheckinActivity.class);
+            	  Intent intent = new Intent(getApplicationContext(), SendCheckinActivity.class);
                 
                 intent.putExtra("UUID", uuids.get(position));
                 startActivityForResult(intent,CHECKIN_REQUEST);
               }
 
          });
-
-        // Register the BroadcastReceiver
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(mReceiver, filter); // Don't forget to unregister during onDestroy
-        
-        IntentFilter filterScanDone = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        registerReceiver(mReceiver, filterScanDone);
-        
-        IntentFilter filterScanStarted = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        registerReceiver(mReceiver, filterScanStarted);
-        
-
+		IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+	    this.registerReceiver(mReceiver, filter);
 	}
 
 	@Override
@@ -153,40 +127,25 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 		}
 	}
 	
-    // Create a BroadcastReceiver
-	// Not used with BLE
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            // When discovery finds a device
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                // Get the BluetoothDevice object from the Intent
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                // Add the name and address to an array adapter to show in a ListView
-                adapter.add(device.getName() + "\n" + device.getAddress());
-            }
-            if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)){
-            	b.setEnabled(true);
-            	p.setVisibility(4);
-            	b.setText("Scan again");
-            }
-            if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)){
-            	adapter.clear();
-            	b.setEnabled(false);
-            	p.setVisibility(0);
-            	b.setText("Scanning...");
-            }
-        }
-    };
-    
-    
-    //Not used with BLE
-    public void scanButton(View v){
-    	if(!hasBLE){
-    		bta.startDiscovery();
-    	}
-    }
-    
+	private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+	    @Override
+	    public void onReceive(Context context, Intent intent) {
+	        final String action = intent.getAction();
+
+	        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+	            final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+	                                                 BluetoothAdapter.ERROR);
+	            switch (state) {
+	            case BluetoothAdapter.STATE_OFF:
+	            	finish();
+	                break;
+	            case BluetoothAdapter.STATE_TURNING_OFF:
+	            	finish();
+	                break;
+	            }
+	        }
+	    }
+	};    
     //action: 1=add, 2 = remove
     private void logToDisplay(final String line, final int action, final String uuid) {
         runOnUiThread(new Runnable() {

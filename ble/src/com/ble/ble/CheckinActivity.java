@@ -28,6 +28,11 @@ public class CheckinActivity extends Activity {
 			Toast.makeText(this, "Your device does not support bluetooth :(", Toast.LENGTH_LONG).show();
 			this.finish();
 		}
+	}
+	
+	@Override
+	public void onStart(){
+		super.onStart();
 		if(!bta.isEnabled()){
 			enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);

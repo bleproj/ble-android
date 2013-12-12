@@ -1,11 +1,13 @@
 package com.ble.ble;
 
-import java.util.Timer;
 import java.util.Vector;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,7 +29,6 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 	boolean hasBLE = false;
 	Vector<Region> regions;
 	private Handler timeHandler;
-	private Timer timer;
     
     //iBeacon stuff
     private IBeaconManager iBeaconManager;
@@ -39,7 +40,6 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 
 		bta = BluetoothAdapter.getDefaultAdapter();
 		timeHandler = new Handler();
-		timer = new Timer();
 		
 		//Check if device supports bluetooth low energy
 		if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
@@ -53,8 +53,10 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 			regions.add(new Region("testRegion", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
 		} else {
 			Toast.makeText(this, "Your phone does not support bluetooth low energy", Toast.LENGTH_LONG).show();
+			finish();
 		}
-
+		IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+	    this.registerReceiver(mReceiver, filter);
 	}
 
 	@Override
@@ -67,21 +69,9 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 	@Override
 	protected void onDestroy(){
 		super.onDestroy();
+		unregisterReceiver(mReceiver);
 		iBeaconManager.unBind(this);
 	}
-
-       //action: 1=add, 2 = remove
-    private void logToDisplay(final String line, final int action) {
-        runOnUiThread(new Runnable() {
-            public void run() {
-            	if(action == 1){
-                	myToast("Entered");
-            	} else {
-            		myToast("Left");
-            	}
-            }
-        });
-    }
     
     @Override
     public void onIBeaconServiceConnect() {
@@ -152,4 +142,24 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 	public void backButton(View v){
 		finish();
 	}
+	
+	private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+	    @Override
+	    public void onReceive(Context context, Intent intent) {
+	        final String action = intent.getAction();
+
+	        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+	            final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+	                                                 BluetoothAdapter.ERROR);
+	            switch (state) {
+	            case BluetoothAdapter.STATE_OFF:
+	            	finish();
+	                break;
+	            case BluetoothAdapter.STATE_TURNING_OFF:
+	            	finish();
+	                break;
+	            }
+	        }
+	    }
+	};
 }
