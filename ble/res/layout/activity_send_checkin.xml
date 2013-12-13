@@ -25,7 +25,6 @@
         android:layout_alignParentTop="true"
         android:textSize="64sp"
         android:textStyle="bold"
-        android:gravity="center_horizontal"
-        android:text="Checking in" />
+        android:gravity="center_horizontal" />
 
 </RelativeLayout>

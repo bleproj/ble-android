@@ -11,7 +11,10 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.os.RemoteException;
+import android.os.ResultReceiver;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Toast;
@@ -28,7 +31,8 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 	BluetoothAdapter bta;
 	boolean hasBLE = false;
 	Vector<Region> regions;
-	private Handler timeHandler;
+	public Handler timeHandler;
+	private boolean active;
     
     //iBeacon stuff
     private IBeaconManager iBeaconManager;
@@ -50,7 +54,7 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 			regions = new Vector<Region>(1,1);
 			//Set regions, should be taken from database
 			//for regions in database .....
-			regions.add(new Region("testRegion", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
+			regions.add(new Region("M7012E", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
 		} else {
 			Toast.makeText(this, "Your phone does not support bluetooth low energy", Toast.LENGTH_LONG).show();
 			finish();
@@ -72,20 +76,30 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 		unregisterReceiver(mReceiver);
 		iBeaconManager.unBind(this);
 	}
+	
+	@Override
+	protected void onResume(){
+		super.onResume();
+		active = true;
+	}
+	
+	@Override
+	protected void onPause(){
+		super.onPause();
+		active = false;
+	}
     
     @Override
     public void onIBeaconServiceConnect() {
         iBeaconManager.setMonitorNotifier(new MonitorNotifier() {
         @Override
         public void didEnterRegion(Region region) {
-        	//logToDisplay(region.getUniqueId(),1);
-        	checkin(region.getProximityUuid(),1).run();
+        	checkin(region.getUniqueId(), region.getProximityUuid(),"checkin").run();
         }
 
         @Override
         public void didExitRegion(Region region) {
-        	//logToDisplay(region.getUniqueId(),2);
-        	checkin(region.getProximityUuid(),2).run();
+        	checkin(region.getUniqueId(), region.getProximityUuid(),"checkout").run();
         }
 
 		@Override
@@ -105,13 +119,24 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
     	Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
     
-    public Runnable checkin(final String uuid, final int option){
+    public Runnable checkin(final String event, final String uuid, final String option){
     	return new Runnable() {
             public void run() {
-            	Intent intent = new Intent(getApplicationContext(), SendCheckinActivity.class);
+            	Intent intent;
+            	if (active){
+            		intent = new Intent(getApplicationContext(), SendCheckinActivity.class);
+            	} else {
+            		intent = new Intent(getApplicationContext(), CheckinService.class);
+            	}
             	intent.putExtra("UUID", uuid);
             	intent.putExtra("option", option);
-            	startActivityForResult(intent,CHECKIN_REQUEST);
+            	intent.putExtra("event", event);
+            	if (active){
+            		startActivityForResult(intent,CHECKIN_REQUEST);
+            	} else {
+            		intent.putExtra("receiver", resRec);
+            		startService(intent);
+            	}
             }
     	};
     }
@@ -121,13 +146,13 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 		if(requestCode <= CHECKIN_REQUEST){
 			if(resultCode == CHECKIN_SUCCESS){
 				Toast.makeText(getApplicationContext(),
-						"Checkin done", Toast.LENGTH_LONG)
+						"Checkin done\n"+data.getStringExtra("event"), Toast.LENGTH_LONG)
 						.show();
 			} else {
 				Toast.makeText(getApplicationContext(),
-						"Checkin failed, will try again in 60 seconds.", Toast.LENGTH_LONG)
+						"Checkin failed, will try again in 60 seconds.\n"+data.getStringExtra("event"), Toast.LENGTH_LONG)
 						.show();
-				timeHandler.postDelayed(checkin(data.getStringExtra("UUID"),data.getIntExtra("option", 1)), 60000L);
+				timeHandler.postDelayed(checkin(data.getStringExtra("event"), data.getStringExtra("UUID"),data.getStringExtra("option")), 60000L);
 			}
 		}
 	}
@@ -157,9 +182,25 @@ public class AutoCheckinActivity extends Activity implements IBeaconConsumer{
 	                break;
 	            case BluetoothAdapter.STATE_TURNING_OFF:
 	            	finish();
-	                break;
+	            	break;
 	            }
 	        }
 	    }
 	};
+	
+	private final ResultReceiver resRec = new ResultReceiver(new Handler()) {
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if (resultCode == 200){
+            	Toast.makeText(getApplicationContext(),
+						"Checkin done\n"+resultData.getString("event"), Toast.LENGTH_LONG)
+						.show();
+            } else {
+            	Toast.makeText(getApplicationContext(),
+						"Checkin failed, will try again in 60 seconds.\n"+resultData.getString("event"), Toast.LENGTH_LONG)
+						.show();
+				timeHandler.postDelayed(checkin(resultData.getString("event"), resultData.getString("UUID"),resultData.getString("option")), 60000L);
+            }
+        }
+    };
 }

@@ -61,7 +61,7 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 			uuids = new Vector<String>(1,1);
 			//Set regions, should be taken from database
 			//for regions in database .....
-			regions.add(new Region("testRegion", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
+			regions.add(new Region("M7012E", "23542266-18D1-4FE4-B4A1-23F8195B9D39", 1, null));
 		} else {
 			finish();
 		}
@@ -88,8 +88,13 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
                  int position, long id) {
             	  Intent intent = new Intent(getApplicationContext(), SendCheckinActivity.class);
                 
-                intent.putExtra("UUID", uuids.get(position));
-                startActivityForResult(intent,CHECKIN_REQUEST);
+            	  // ListView Clicked item value
+            	  String event = (String) listView.getItemAtPosition(position);
+
+            	  intent.putExtra("UUID", uuids.get(position));
+            	  intent.putExtra("event", event);
+            	  intent.putExtra("option", "checkin");
+            	  startActivityForResult(intent,CHECKIN_REQUEST);
               }
 
          });
@@ -116,12 +121,12 @@ public class ManualCheckinActivity extends Activity implements IBeaconConsumer{
 		if(requestCode <= CHECKIN_REQUEST){
 			if(resultCode == CHECKIN_SUCCESS){
 				Toast.makeText(getApplicationContext(),
-						"Checkin done", Toast.LENGTH_LONG)
+						"Checkin done\n"+data.getStringExtra("event"), Toast.LENGTH_LONG)
 						.show();
 				finish();
 			} else {
 				Toast.makeText(getApplicationContext(),
-						"Checkin failed", Toast.LENGTH_LONG)
+						"Checkin failed, please try again\n"+data.getStringExtra("event"), Toast.LENGTH_LONG)
 						.show();
 			}
 		}

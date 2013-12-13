@@ -1,7 +1,5 @@
 package com.ble.ble;
 
-import java.util.Locale;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -11,16 +9,13 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
-import android.app.Activity;
+import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.widget.TextView;
+import android.os.ResultReceiver;
 import android.widget.Toast;
 
-public class SendCheckinActivity extends Activity {
+public class CheckinService extends IntentService {
 	private String uuid;
 	private String option;
 	private String accessToken;
@@ -34,23 +29,19 @@ public class SendCheckinActivity extends Activity {
 	Intent intent;
 	SharedPreferences prefs;
 	String userName;
+	
+	public CheckinService() {
+		super(CheckinService.class.getName());
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_send_checkin);
-		intent = getIntent();
+    protected void onHandleIntent(Intent workIntent) {
+		intent = workIntent;
 		uuid = intent.getStringExtra("UUID");
 		option = intent.getStringExtra("option");
-		Toast.makeText(this, option, Toast.LENGTH_LONG).show();
-		TextView t = (TextView)findViewById(R.id.textView1);
-		if(option.equals("checkout")){
-			t.setText("Checking out");
-		} else {
-			t.setText("Checking in");
-		}
 		send();
-	}
+    }
 	
 	public void send(){
 		new Thread() {
@@ -90,25 +81,14 @@ public class SendCheckinActivity extends Activity {
 				} catch (Exception e){
 					e.printStackTrace();
 				}
-				setStatusAndExit(resultCode);
+				showResultAndExit(resultCode);
 			}
 		}.start();
 	}
 	
-	public void setStatusAndExit(int resultCode){
-		if (resultCode == 200){
-			setResult(1, intent);
-		} else {
-			setResult(2, intent);
-		}
-		finish();
+	public void showResultAndExit(int resultCode){
+		ResultReceiver rec = intent.getParcelableExtra("receiver");
+		rec.send(resultCode, intent.getExtras());
+		stopSelf();
 	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.send_checkin, menu);
-		return true;
-	}
-
 }
