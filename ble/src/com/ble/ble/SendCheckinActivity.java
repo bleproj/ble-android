@@ -42,7 +42,6 @@ public class SendCheckinActivity extends Activity {
 		intent = getIntent();
 		uuid = intent.getStringExtra("UUID");
 		option = intent.getStringExtra("option");
-		Toast.makeText(this, option, Toast.LENGTH_LONG).show();
 		TextView t = (TextView)findViewById(R.id.textView1);
 		if(option.equals("checkout")){
 			t.setText("Checking out");
